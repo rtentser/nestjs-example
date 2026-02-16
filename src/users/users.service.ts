@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { HashService } from 'src/common/hash/hash.service';
+import { HashService } from '../common/hash/hash.service';
+import { AuthService } from '../common/auth/auth.service';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,6 +14,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
 
     private hashService: HashService,
+    private authService: AuthService
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -20,6 +23,18 @@ export class UsersService {
       ...createUserDto,
       password_hash: passwordHash
     })
-    return await this.usersRepository.save(newUser)
+    
+    const tokens = await this.authService.generateTokens(newUser)
+    await this.usersRepository.save(newUser)
+    return tokens
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    const user = await this.usersRepository.findOneBy({username: loginUserDto.username})
+    if (!user || !(await this.hashService.comparePassword(loginUserDto.password, user.password_hash))) {
+      throw new ForbiddenException()
+    }
+    
+    return this.authService.generateTokens(user)
   }
 }
