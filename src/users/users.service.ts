@@ -37,4 +37,14 @@ export class UsersService {
     
     return this.authService.generateTokens(user)
   }
+
+  async refreshTokens(username: string) {
+    const user = await this.usersRepository.findOneBy({username})
+
+    if (!user) {
+      throw new ForbiddenException()
+    }
+
+    return this.authService.generateTokens(user)
+  }
 }
