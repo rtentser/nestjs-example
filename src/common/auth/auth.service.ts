@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 
@@ -15,5 +15,18 @@ export class AuthService {
 
     async verifyToken(token: string) {
         return await this.jwtService.verifyAsync(token)
+    }
+
+    async getPayload(tokenType: string, token: string) {
+        const payload = await this.verifyToken(token)
+        if (tokenType === 'Bearer' && payload.type !== 'JWT') {
+            throw new UnauthorizedException('Invalid token')
+        }
+
+        if (tokenType === 'Refresh' && payload.type !== 'REFRESH') {
+            throw new UnauthorizedException('Invalid token')
+        }
+
+        return payload
     }
 }

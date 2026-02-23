@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { JwtGuard } from 'src/common/guards/jwt.guard';
+import { RefreshGuard } from 'src/common/guards/refresh.guard';
 
 @Controller('users')
 export class UsersController {
@@ -18,7 +18,7 @@ export class UsersController {
     return this.usersService.login(loginUserDto)
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(RefreshGuard)
   @Get('refresh')
   refresh(@Request() req) {
     return this.usersService.refreshTokens(req.user.username);
