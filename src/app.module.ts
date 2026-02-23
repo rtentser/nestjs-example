@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { CommonModule } from './common/common.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CommonModule } from './common/common.module';
     }),
     UsersModule,
     CommonModule,
+    ArticlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
