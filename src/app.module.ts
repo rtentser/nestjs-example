@@ -18,7 +18,7 @@ import { ArticlesModule } from './articles/articles.module';
       database: 'nest_db',
       entities: [User],
       synchronize: false,
-      migrations: [__dirname + '/migrations/**/*{.js,.ts}']
+      migrations: [__dirname + '/migrations/**/*{.js,.ts}'],
     }),
     UsersModule,
     CommonModule,

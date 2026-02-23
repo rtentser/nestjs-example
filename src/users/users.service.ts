@@ -14,37 +14,47 @@ export class UsersService {
     private usersRepository: Repository<User>,
 
     private hashService: HashService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const passwordHash = await this.hashService.hashPassword(createUserDto.password)
+    const passwordHash = await this.hashService.hashPassword(
+      createUserDto.password,
+    );
     const newUser = this.usersRepository.create({
       ...createUserDto,
-      password_hash: passwordHash
-    })
-    
-    const tokens = await this.authService.generateTokens(newUser)
-    await this.usersRepository.save(newUser)
-    return tokens
+      password_hash: passwordHash,
+    });
+
+    const tokens = await this.authService.generateTokens(newUser);
+    await this.usersRepository.save(newUser);
+    return tokens;
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const user = await this.usersRepository.findOneBy({username: loginUserDto.username})
-    if (!user || !(await this.hashService.comparePassword(loginUserDto.password, user.password_hash))) {
-      throw new ForbiddenException()
+    const user = await this.usersRepository.findOneBy({
+      username: loginUserDto.username,
+    });
+    if (
+      !user ||
+      !(await this.hashService.comparePassword(
+        loginUserDto.password,
+        user.password_hash,
+      ))
+    ) {
+      throw new ForbiddenException();
     }
-    
-    return this.authService.generateTokens(user)
+
+    return this.authService.generateTokens(user);
   }
 
   async refreshTokens(username: string) {
-    const user = await this.usersRepository.findOneBy({username})
+    const user = await this.usersRepository.findOneBy({ username });
 
     if (!user) {
-      throw new ForbiddenException()
+      throw new ForbiddenException();
     }
 
-    return this.authService.generateTokens(user)
+    return this.authService.generateTokens(user);
   }
 }
