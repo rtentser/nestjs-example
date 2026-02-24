@@ -1,11 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Article } from './entities/article.entity';
+import { Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ArticlesService {
-  create(createArticleDto: CreateArticleDto) {
-    return 'This action adds a new article';
+  constructor(
+    @InjectRepository(Article)
+    private articlesRepository: Repository<Article>,
+
+    private usersService: UsersService,
+  ) {}
+
+  async create(createArticleDto: CreateArticleDto) {
+    if (!createArticleDto.username)
+      throw new UnauthorizedException('User not found');
+
+    const user = await this.usersService.getUserByUsername(
+      createArticleDto.username,
+    );
+
+    if (!user) throw new UnauthorizedException();
+
+    const newArticle = this.articlesRepository.create({
+      ...createArticleDto,
+      author: user,
+    });
+
+    return this.articlesRepository.save(newArticle);
   }
 
   findAll() {

@@ -21,7 +21,12 @@ export class AuthService {
   }
 
   async getPayload(tokenType: string, token: string) {
-    const payload = await this.verifyToken(token);
+    let payload;
+    try {
+      payload = await this.verifyToken(token);
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
     if (tokenType === 'Bearer' && payload.type !== 'JWT') {
       throw new UnauthorizedException('Invalid token');
     }

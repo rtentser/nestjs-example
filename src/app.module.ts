@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { CommonModule } from './common/common.module';
 import { ArticlesModule } from './articles/articles.module';
+import { Article } from './articles/entities/article.entity';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { ArticlesModule } from './articles/articles.module';
       username: 'user',
       password: 'password',
       database: 'nest_db',
-      entities: [User],
+      entities: [User, Article],
       synchronize: false,
       migrations: [__dirname + '/migrations/**/*{.js,.ts}'],
     }),

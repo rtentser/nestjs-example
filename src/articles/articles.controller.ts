@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -19,7 +20,8 @@ export class ArticlesController {
 
   @UseGuards(JwtGuard)
   @Post()
-  create(@Body() createArticleDto: CreateArticleDto) {
+  create(@Body() createArticleDto: CreateArticleDto, @Request() req) {
+    createArticleDto.username = req.user.username;
     return this.articlesService.create(createArticleDto);
   }
 
@@ -39,6 +41,7 @@ export class ArticlesController {
     return this.articlesService.update(+id, updateArticleDto);
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.articlesService.remove(+id);

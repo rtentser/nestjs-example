@@ -32,9 +32,8 @@ export class UsersService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const user = await this.usersRepository.findOneBy({
-      username: loginUserDto.username,
-    });
+    const user = await this.getUserByUsername(loginUserDto.username);
+
     if (
       !user ||
       !(await this.hashService.comparePassword(
@@ -49,12 +48,16 @@ export class UsersService {
   }
 
   async refreshTokens(username: string) {
-    const user = await this.usersRepository.findOneBy({ username });
+    const user = await this.getUserByUsername(username);
 
     if (!user) {
       throw new ForbiddenException();
     }
 
     return this.authService.generateTokens(user);
+  }
+
+  async getUserByUsername(username: string) {
+    return this.usersRepository.findOneBy({ username });
   }
 }

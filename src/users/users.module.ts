@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { HashModule } from '../common/hash/hash.module';
 import { AuthModule } from '../common/auth/auth.module';
+import { Article } from '../articles/entities/article.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), HashModule, AuthModule],
+  imports: [TypeOrmModule.forFeature([User, Article]), HashModule, AuthModule],
+  exports: [UsersService],
   controllers: [UsersController],
   providers: [UsersService],
 })
