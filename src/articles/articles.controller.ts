@@ -21,7 +21,7 @@ export class ArticlesController {
   @UseGuards(JwtGuard)
   @Post()
   create(@Body() createArticleDto: CreateArticleDto, @Request() req) {
-    createArticleDto.username = req.user.username;
+    createArticleDto.username = req.user.username as string;
     return this.articlesService.create(createArticleDto);
   }
 
@@ -37,7 +37,13 @@ export class ArticlesController {
 
   @UseGuards(JwtGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateArticleDto: UpdateArticleDto,
+    @Request() req,
+  ) {
+    console.log(req.user);
+    updateArticleDto.username = req.user.username as string;
     return this.articlesService.update(+id, updateArticleDto);
   }
 

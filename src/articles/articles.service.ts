@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,20 +21,20 @@ export class ArticlesService {
 
   async create(createArticleDto: CreateArticleDto) {
     if (!createArticleDto.username)
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Author not found');
 
     const user = await this.usersService.getUserByUsername(
       createArticleDto.username,
     );
 
-    if (!user) throw new UnauthorizedException();
+    if (!user) throw new UnauthorizedException('Author not found');
 
     const newArticle = this.articlesRepository.create({
       ...createArticleDto,
       author: user,
     });
 
-    return this.articlesRepository.save(newArticle);
+    return this.articlesRepository.insert(newArticle);
   }
 
   findAll() {
@@ -41,8 +45,24 @@ export class ArticlesService {
     return `This action returns a #${id} article`;
   }
 
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`;
+  async update(id: number, updateArticleDto: UpdateArticleDto) {
+    if (!updateArticleDto.username)
+      throw new UnauthorizedException('Author not found');
+
+    const article = await this.articlesRepository.findOne({
+      where: { id },
+      relations: { author: true },
+    });
+
+    if (!article) throw new NotFoundException('The article not found');
+
+    if (article.author.username !== updateArticleDto.username)
+      throw new UnauthorizedException('Wrong author');
+
+    delete updateArticleDto.username;
+    const updatedArticle = { ...article, ...updateArticleDto };
+    await this.articlesRepository.update(article, updatedArticle);
+    return updatedArticle;
   }
 
   remove(id: number) {
