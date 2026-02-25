@@ -16,7 +16,7 @@ export class User {
   })
   email: string;
 
-  @Column()
+  @Column({ select: false })
   password_hash: string;
 
   @OneToMany(() => Article, (article) => article.author)

@@ -26,13 +26,16 @@ export class UsersService {
       password_hash: passwordHash,
     });
 
-    const tokens = await this.authService.generateTokens(newUser);
-    await this.usersRepository.save(newUser);
-    return tokens;
+    await this.usersRepository.insert(newUser);
+
+    return this.authService.generateTokens(newUser);
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const user = await this.getUserByUsername(loginUserDto.username);
+    const user = await this.usersRepository.findOne({
+      where: { username: loginUserDto.username },
+      select: ['id', 'username', 'password_hash'],
+    });
 
     if (
       !user ||
