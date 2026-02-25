@@ -8,11 +8,13 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtGuard } from 'src/common/guards/jwt.guard';
+import { FilterArticleDto } from './dto/filter-article.dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -26,8 +28,12 @@ export class ArticlesController {
   }
 
   @Get()
-  findAll() {
-    return this.articlesService.findAll();
+  findAll(
+    @Query('limit') limit: number,
+    @Query('offset') offset: number,
+    @Body() filter: FilterArticleDto,
+  ) {
+    return this.articlesService.findAll(limit, offset, filter);
   }
 
   @Get(':id')
@@ -42,14 +48,13 @@ export class ArticlesController {
     @Body() updateArticleDto: UpdateArticleDto,
     @Request() req,
   ) {
-    console.log(req.user);
     updateArticleDto.username = req.user.username as string;
     return this.articlesService.update(+id, updateArticleDto);
   }
 
   @UseGuards(JwtGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.articlesService.remove(+id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.articlesService.remove(+id, req.user.username);
   }
 }

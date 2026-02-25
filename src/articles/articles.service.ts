@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './entities/article.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
+import { FilterArticleDto } from './dto/filter-article.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -34,15 +35,28 @@ export class ArticlesService {
       author: user,
     });
 
-    return this.articlesRepository.insert(newArticle);
+    await this.articlesRepository.insert(newArticle);
+
+    return newArticle;
   }
 
-  findAll() {
-    return `This action returns all articles`;
+  findAll(limit: number, offset: number, filter: FilterArticleDto) {
+    return this.articlesRepository.find({
+      take: limit,
+      skip: offset,
+      where: filter,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} article`;
+  async findOne(id: number) {
+    const article = await this.articlesRepository.findOne({
+      where: { id },
+      relations: { author: true },
+    });
+
+    if (!article) throw new NotFoundException('The article not found');
+
+    return article;
   }
 
   async update(id: number, updateArticleDto: UpdateArticleDto) {
@@ -65,7 +79,21 @@ export class ArticlesService {
     return updatedArticle;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} article`;
+  async remove(id: number, username: string) {
+    if (!username) throw new UnauthorizedException('Author not found');
+
+    const article = await this.articlesRepository.findOne({
+      where: { id },
+      relations: { author: true },
+    });
+
+    if (!article) throw new NotFoundException('The article not found');
+
+    if (article.author.username !== username)
+      throw new UnauthorizedException('Wrong author');
+
+    await this.articlesRepository.remove(article);
+
+    return `The article ${id} removed`;
   }
 }
