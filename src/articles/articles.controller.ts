@@ -9,12 +9,15 @@ import {
   UseGuards,
   Request,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtGuard } from 'src/common/guards/jwt.guard';
 import { FilterArticleDto } from './dto/filter-article.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('articles')
 export class ArticlesController {
@@ -27,13 +30,29 @@ export class ArticlesController {
     return this.articlesService.create(createArticleDto);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get()
   findAll(
     @Query('limit') limit: number,
     @Query('offset') offset: number,
-    @Body() filter: FilterArticleDto,
+    @Query('title') title: number,
+    @Query('description') description: number,
+    @Query('publication_date') publication_date: number,
+    @Query('username') username: number,
   ) {
-    return this.articlesService.findAll(limit, offset, filter);
+    const filter = {
+      title,
+      description,
+      publication_date,
+      author: {
+        username,
+      },
+    };
+    return this.articlesService.findAll(
+      limit,
+      offset,
+      plainToInstance(FilterArticleDto, filter),
+    );
   }
 
   @Get(':id')

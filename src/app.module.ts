@@ -38,6 +38,7 @@ import { redisStore } from 'cache-manager-redis-yet';
               ? parseInt(process.env.CACHE_PORT)
               : 6379,
           },
+          ttl: 60000,
         }),
       }),
     }),
