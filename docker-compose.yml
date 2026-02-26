@@ -14,6 +14,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: nestjs-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
   main-app:
     build:
       context: .
@@ -28,12 +38,16 @@ services:
       DATABASE_USER: ${DB_USER}
       DATABASE_PASSWORD: ${DB_PASSWORD}
       DATABASE_NAME: ${DB_NAME}
+      CACHE_HOST: ${REDIS_HOST}
+      CACHE_PORT: ${REDIS_PORT}
     # Основные настройки для Hot Reload:
     volumes:
       - .:/app               # Синхронизируем код
       - /app/node_modules    # Изолируем node_modules контейнера от локальных
     depends_on:
       - db
+      - redis
 
 volumes:
   postgres_data:
+  redis_data:

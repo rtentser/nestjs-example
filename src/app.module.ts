@@ -7,6 +7,8 @@ import { User } from './users/entities/user.entity';
 import { CommonModule } from './common/common.module';
 import { ArticlesModule } from './articles/articles.module';
 import { Article } from './articles/entities/article.entity';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -26,6 +28,19 @@ import { Article } from './articles/entities/article.entity';
     UsersModule,
     CommonModule,
     ArticlesModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: {
+            host: process.env.CACHE_HOST,
+            port: process.env.CACHE_PORT
+              ? parseInt(process.env.CACHE_PORT)
+              : 6379,
+          },
+        }),
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
