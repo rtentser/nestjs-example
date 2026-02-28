@@ -15,14 +15,17 @@ import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtGuard } from 'src/common/guards/jwt.guard';
-import { FilterArticleDto } from './dto/filter-article.dto';
+import { ArticleQueryDto } from './dto/filter-article.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { plainToInstance } from 'class-transformer';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { Article } from './entities/article.entity';
 
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
+  @ApiOperation({ summary: 'Create new article' })
+  @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post()
   create(@Body() createArticleDto: CreateArticleDto, @Request() req) {
@@ -30,36 +33,23 @@ export class ArticlesController {
     return this.articlesService.create(createArticleDto);
   }
 
+  @ApiOperation({ summary: 'Get all articles or articles by criteria' })
   @UseInterceptors(CacheInterceptor)
   @Get()
-  findAll(
-    @Query('limit') limit: number,
-    @Query('offset') offset: number,
-    @Query('title') title: number,
-    @Query('description') description: number,
-    @Query('publication_date') publication_date: number,
-    @Query('username') username: number,
-  ) {
-    const filter = {
-      title,
-      description,
-      publication_date,
-      author: {
-        username,
-      },
-    };
-    return this.articlesService.findAll(
-      limit,
-      offset,
-      plainToInstance(FilterArticleDto, filter),
-    );
+  findAll(@Query() query: ArticleQueryDto) {
+    return this.articlesService.findAll(query);
   }
 
+  @ApiOperation({ summary: 'Get specific article by id' })
+  @ApiOkResponse({ type: Article })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.articlesService.findOne(+id);
   }
 
+  @ApiOperation({ summary: 'Update article by id' })
+  @ApiOkResponse({ type: Article })
+  @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Patch(':id')
   update(
@@ -71,6 +61,8 @@ export class ArticlesController {
     return this.articlesService.update(+id, updateArticleDto);
   }
 
+  @ApiOperation({ summary: 'Delete article by id' })
+  @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {

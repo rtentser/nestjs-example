@@ -1,18 +1,17 @@
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 
-class Author {
-  @IsString()
+export class ArticleQueryDto {
+  @IsNumber()
   @IsOptional()
-  username?: string;
-}
+  @Type(() => Number)
+  limit?: number;
 
-export class FilterArticleDto {
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  offset?: number;
+
   @IsString()
   @IsOptional()
   title?: string;
@@ -25,8 +24,7 @@ export class FilterArticleDto {
   @IsOptional()
   publication_date?: Date;
 
+  @IsString()
   @IsOptional()
-  @ValidateNested()
-  @Type(() => Author)
-  author?: Author;
+  username?: string;
 }

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { HashService } from '../common/hash/hash.service';
 import { AuthService } from '../common/auth/auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Tokens } from 'src/common/auth/auth.types';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +18,8 @@ export class UsersService {
     private authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  /** Create a new user and generate tokens for them */
+  async create(createUserDto: CreateUserDto): Promise<Tokens> {
     const passwordHash = await this.hashService.hashPassword(
       createUserDto.password,
     );
@@ -31,7 +33,8 @@ export class UsersService {
     return this.authService.generateTokens(newUser);
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  /** Log into existing user and generate tokens for them */
+  async login(loginUserDto: LoginUserDto): Promise<Tokens> {
     const user = await this.usersRepository.findOne({
       where: { username: loginUserDto.username },
       select: ['id', 'username', 'password_hash'],
@@ -50,7 +53,8 @@ export class UsersService {
     return this.authService.generateTokens(user);
   }
 
-  async refreshTokens(username: string) {
+  /** Generate new tokens by refresh token */
+  async refreshTokens(username: string): Promise<Tokens> {
     const user = await this.getUserByUsername(username);
 
     if (!user) {

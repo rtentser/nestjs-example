@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './entities/article.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
-import { FilterArticleDto } from './dto/filter-article.dto';
+import { ArticleQueryDto } from './dto/filter-article.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 
@@ -26,7 +26,8 @@ export class ArticlesService {
     private cacheManager: Cache,
   ) {}
 
-  async create(createArticleDto: CreateArticleDto) {
+  /** Creates a new article */
+  async create(createArticleDto: CreateArticleDto): Promise<Article> {
     if (!createArticleDto.username)
       throw new UnauthorizedException('Author not found');
 
@@ -46,19 +47,29 @@ export class ArticlesService {
     return newArticle;
   }
 
-  findAll(limit: number, offset: number, filter: FilterArticleDto) {
+  /** Finds articles by criterias */
+  findAll(query: ArticleQueryDto): Promise<Article[]> {
     return this.articlesRepository.find({
-      take: limit,
-      skip: offset,
-      where: filter,
+      take: query.limit,
+      skip: query.offset,
+      order: { id: 'ASC' },
+      where: {
+        title: query.title,
+        description: query.description,
+        publication_date: query.publication_date,
+        author: {
+          username: query.username,
+        },
+      },
       relations: { author: true },
     });
   }
 
-  async findOne(id: number) {
+  /** Finds an article */
+  async findOne(id: number): Promise<Article> {
     const cacheKey = `Article #${id}`;
 
-    const cachedArticle = await this.cacheManager.get(cacheKey);
+    const cachedArticle = await this.cacheManager.get<Article>(cacheKey);
     if (cachedArticle) {
       return cachedArticle;
     }
@@ -73,7 +84,11 @@ export class ArticlesService {
     return article;
   }
 
-  async update(id: number, updateArticleDto: UpdateArticleDto) {
+  /** Updates an article */
+  async update(
+    id: number,
+    updateArticleDto: UpdateArticleDto,
+  ): Promise<Article> {
     const cacheKey = `Article #${id}`;
 
     if (!updateArticleDto.username)
@@ -97,7 +112,8 @@ export class ArticlesService {
     return updatedArticle;
   }
 
-  async remove(id: number, username: string) {
+  /** Removes an article */
+  async remove(id: number, username: string): Promise<string> {
     const cacheKey = `Article #${id}`;
 
     if (!username) throw new UnauthorizedException('Author not found');
