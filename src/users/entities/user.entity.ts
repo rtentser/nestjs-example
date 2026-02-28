@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Article } from '../../articles/entities/article.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -16,9 +17,11 @@ export class User {
   })
   email: string;
 
+  @ApiHideProperty()
   @Column({ select: false })
   password_hash: string;
 
+  @ApiHideProperty()
   @OneToMany(() => Article, (article) => article.author)
   articles: Article[];
 }
